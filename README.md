@@ -1,0 +1,1 @@
+It is a C++ port of [atsushieno/mugene-ng](https://github.com/atsushieno/augene-ng) (from Kotlin), for easier integration with [atsushieno/uapmd](https://github.com/atsushieno/uapmd). I'm still not sure if I use it.
