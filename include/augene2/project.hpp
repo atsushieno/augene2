@@ -38,7 +38,7 @@ enum class ProjectClipKind {
 
 struct ProjectClip {
     ProjectClipKind kind{ProjectClipKind::midi2};
-    uint64_t position_dctpq{};
+    int64_t position_dctpq{};
     std::vector<umppi::Ump> smf2clip{};
     std::string name{};
     std::string file{};

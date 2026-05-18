@@ -1052,8 +1052,26 @@ bool FrontEnd::process() {
             return false;
     }
 
+    std::unordered_map<std::string, std::string> aliases;
+    for (const auto& pragma : pragmas_) {
+        if (pragma.name != "define" || pragma.lines.empty())
+            continue;
+
+        const auto& line = pragma.lines.front();
+        std::size_t pos = 0;
+        while (pos < line.size() && (line[pos] == ' ' || line[pos] == '\t'))
+            ++pos;
+        std::size_t start = pos;
+        while (pos < line.size() && line[pos] != ' ' && line[pos] != '\t')
+            ++pos;
+        const auto key = line.substr(start, pos - start);
+        const auto value = trimLeadingWhitespace(std::string_view(line).substr(pos));
+        if (!key.empty())
+            aliases[key] = value;
+    }
+
     for (auto& raw_track : raw_tracks_) {
-        if (!tokenizeTrack(raw_track))
+        if (!tokenizeTrack(raw_track, aliases))
             continue;
     }
 
@@ -1300,7 +1318,8 @@ bool FrontEnd::processTrackLine(const std::string& text, const LineInfo& locatio
     return true;
 }
 
-bool FrontEnd::tokenizeTrack(RawTrackLine& track) {
+bool FrontEnd::tokenizeTrack(RawTrackLine& track,
+                             const std::unordered_map<std::string, std::string>& aliases) {
     auto read_number = [&](std::string_view text, std::size_t& pos, const LineInfo& base_location) -> std::optional<double> {
         if (pos >= text.size())
             return std::nullopt;
@@ -1374,7 +1393,7 @@ bool FrontEnd::tokenizeTrack(RawTrackLine& track) {
     result_track.track_numbers = track.track_numbers;
 
     for (std::size_t line_index = 0; line_index < track.physical_lines.size(); ++line_index) {
-        const auto& line = track.physical_lines[line_index];
+        const auto line = replaceAliases(track.physical_lines[line_index], aliases);
         std::size_t pos = 0;
         while (pos < line.size()) {
             while (pos < line.size() && isWhitespace(line[pos]))
@@ -2289,43 +2308,13 @@ SemanticTree buildSemanticTree(const FrontEnd& front_end, DiagnosticSink& diagno
 
         std::size_t pos = 0;
         std::vector<double> target_tracks;
-        auto read_header_number = [&](std::size_t& header_pos) -> std::optional<double> {
-            if (header_pos >= header.size())
-                return std::nullopt;
-            std::size_t start = header_pos;
-            bool seen_dot = false;
-            while (header_pos < header.size()) {
-                const char ch = header[header_pos];
-                if (std::isdigit(static_cast<unsigned char>(ch))) {
-                    ++header_pos;
-                    continue;
-                }
-                if (!seen_dot && ch == '.' && header_pos + 1 < header.size() &&
-                    std::isdigit(static_cast<unsigned char>(header[header_pos + 1]))) {
-                    seen_dot = true;
-                    ++header_pos;
-                    continue;
-                }
-                break;
-            }
-            if (start == header_pos)
-                return std::nullopt;
-            return std::stod(std::string(header.substr(start, header_pos - start)));
-        };
-
         while (pos < header.size() && isWhitespaceChar(header[pos]))
             ++pos;
         if (pos < header.size() && (std::isdigit(static_cast<unsigned char>(header[pos])) || header[pos] == '#')) {
-            auto first = read_header_number(pos);
-            if (first)
-                target_tracks.push_back(*first);
-            while (pos < header.size() && header[pos] == ',') {
-                ++pos;
-                auto next = read_header_number(pos);
-                if (!next)
-                    break;
-                target_tracks.push_back(*next);
-            }
+            auto parsed_tracks = FrontEnd::parseRange(header, pos, diagnostics, macro_source.first_location);
+            if (!parsed_tracks)
+                continue;
+            target_tracks = std::move(*parsed_tracks);
             while (pos < header.size() && isWhitespaceChar(header[pos]))
                 ++pos;
         }
@@ -3176,7 +3165,12 @@ bool generateSmf2Clips(const SemanticTree& tree,
     uint32_t track_id = 1;
     for (const auto& track : music.tracks) {
         LocatedClip clip;
-        clip.position_dctpq = 0;
+        const int min_tick = track.events.empty()
+            ? 0
+            : std::min_element(track.events.begin(), track.events.end(), [](const ResolvedEvent& left, const ResolvedEvent& right) {
+                return left.tick < right.tick;
+            })->tick;
+        clip.position_dctpq = std::min(min_tick, 0);
         clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
         clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::dctpq(static_cast<uint16_t>(music.base_count / 4))));
         clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
@@ -3184,9 +3178,10 @@ bool generateSmf2Clips(const SemanticTree& tree,
 
         int current_tick = 0;
         for (const auto& event : track.events) {
-            if (event.tick != current_tick)
+            const int normalized_tick = event.tick - static_cast<int>(clip.position_dctpq);
+            if (normalized_tick != current_tick)
                 clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(
-                    static_cast<uint32_t>(event.tick - current_tick))));
+                    static_cast<uint32_t>(normalized_tick - current_tick))));
 
             if (event.operation == "FLEX_TEXT" || event.operation == "FLEX_BINARY") {
                 auto umps = umppi::Ump::fromBytes(event.arguments);
@@ -3230,7 +3225,7 @@ bool generateSmf2Clips(const SemanticTree& tree,
                     event.arguments.size() > 2 ? event.arguments[2] : 0));
             }
 
-            current_tick = event.tick;
+            current_tick = normalized_tick;
         }
 
         clip.smf2clip.push_back(umppi::UmpFactory::endOfClip());
@@ -3255,9 +3250,16 @@ bool generateSmf(const SemanticTree& tree,
 
     for (const auto& track : music.tracks) {
         umppi::Midi1Track midi1_track;
+        const int min_tick = track.events.empty()
+            ? 0
+            : std::min_element(track.events.begin(), track.events.end(), [](const ResolvedEvent& left, const ResolvedEvent& right) {
+                return left.tick < right.tick;
+            })->tick;
+        const int tick_offset = min_tick < 0 ? -min_tick : 0;
         int current_tick = 0;
         for (const auto& event : track.events) {
-            const int delta = event.tick - current_tick;
+            const int normalized_tick = event.tick + tick_offset;
+            const int delta = normalized_tick - current_tick;
             std::shared_ptr<umppi::Midi1Message> message;
             if (!event.arguments.empty() && event.arguments[0] == 0xFF) {
                 std::vector<uint8_t> extra;
@@ -3283,7 +3285,7 @@ bool generateSmf(const SemanticTree& tree,
                     extra);
             }
             midi1_track.events.emplace_back(delta, std::move(message));
-            current_tick = event.tick;
+            current_tick = normalized_tick;
         }
         midi1_track.events.emplace_back(
             0,

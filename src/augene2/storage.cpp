@@ -167,7 +167,7 @@ choc::value::Value saveProjectToJson(const Project& project) {
             ++clip_ordinal;
             auto clip_json = choc::value::createObject("AugeneClip");
             clip_json.addMember("kind", clipKindToString(clip.kind));
-            clip_json.addMember("position_dctpq", static_cast<int64_t>(clip.position_dctpq));
+            clip_json.addMember("position_dctpq", clip.position_dctpq);
             clip_json.addMember("name", clip.name);
 
             std::string clip_file = clip.file;
@@ -313,7 +313,7 @@ std::unique_ptr<Project> UapmdProjectStorage::load(const std::filesystem::path& 
                 ProjectClip clip;
                 clip.kind = clipKindFromJson(clip_json);
                 if (clip_json.hasObjectMember("position_dctpq"))
-                    clip.position_dctpq = static_cast<uint64_t>(clip_json["position_dctpq"].getWithDefault<int64_t>(0));
+                    clip.position_dctpq = clip_json["position_dctpq"].getWithDefault<int64_t>(0);
                 if (clip_json.hasObjectMember("name"))
                     clip.name = std::string(clip_json["name"].getString());
                 if (clip_json.hasObjectMember("file"))

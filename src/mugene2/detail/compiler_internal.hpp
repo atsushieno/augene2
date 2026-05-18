@@ -244,6 +244,10 @@ public:
     [[nodiscard]] const std::vector<PragmaSource>& pragmas() const { return pragmas_; }
     [[nodiscard]] const std::vector<VariableSource>& variables() const { return variables_; }
     [[nodiscard]] const std::vector<MacroSource>& macros() const { return macros_; }
+    static std::optional<std::vector<double>> parseRange(std::string_view text,
+                                                         std::size_t& pos,
+                                                         DiagnosticSink& diagnostics,
+                                                         const LineInfo& location);
 
 private:
     struct RawTrackLine {
@@ -256,15 +260,12 @@ private:
     bool processSource(const SourceText& source);
     bool processPragma(const std::string& pragma, const LineInfo& location, std::vector<std::string>** continued_lines);
     bool processTrackLine(const std::string& text, const LineInfo& location, RawTrackLine** continued_track);
-    bool tokenizeTrack(RawTrackLine& track);
+    bool tokenizeTrack(RawTrackLine& track,
+                       const std::unordered_map<std::string, std::string>& aliases);
 
     static std::string trimComments(const std::string& text, std::size_t start = 0);
     static bool isWhitespace(char c);
     static bool isIdentifierChar(char c, bool start_char, bool escaped_continue = false);
-    static std::optional<std::vector<double>> parseRange(std::string_view text,
-                                                         std::size_t& pos,
-                                                         DiagnosticSink& diagnostics,
-                                                         const LineInfo& location);
     std::string readIdentifier(std::string_view text, std::size_t& pos) const;
     std::optional<std::string> longestMatchingIdentifier(std::string_view text, std::size_t pos) const;
     void registerPrimitiveIdentifiers();

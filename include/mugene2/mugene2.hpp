@@ -28,7 +28,7 @@ struct Diagnostic {
 };
 
 struct LocatedClip {
-    uint64_t position_dctpq{};
+    int64_t position_dctpq{};
     std::vector<umppi::Ump> smf2clip{};
 };
 
