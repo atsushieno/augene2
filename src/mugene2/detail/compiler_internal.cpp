@@ -3179,13 +3179,21 @@ bool generateSmf2Clips(const SemanticTree& tree,
         int current_tick = 0;
         for (const auto& event : track.events) {
             const int normalized_tick = event.tick - static_cast<int>(clip.position_dctpq);
-            if (normalized_tick != current_tick)
-                clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(
-                    static_cast<uint32_t>(normalized_tick - current_tick))));
+            const uint32_t event_delta = static_cast<uint32_t>(normalized_tick - current_tick);
+
+            auto append_message = [&](const auto& umps) {
+                bool first_packet = true;
+                for (const auto& ump : umps) {
+                    clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(
+                        first_packet ? event_delta : 0)));
+                    clip.smf2clip.push_back(ump);
+                    first_packet = false;
+                }
+            };
 
             if (event.operation == "FLEX_TEXT" || event.operation == "FLEX_BINARY") {
                 auto umps = umppi::Ump::fromBytes(event.arguments);
-                clip.smf2clip.insert(clip.smf2clip.end(), umps.begin(), umps.end());
+                append_message(umps);
             } else if (event.operation == "MIDI_NG") {
                 if (event.arguments.size() >= 8) {
                     const uint32_t rest32 =
@@ -3193,6 +3201,7 @@ bool generateSmf2Clips(const SemanticTree& tree,
                         (static_cast<uint32_t>(event.arguments[5]) << 16) |
                         (static_cast<uint32_t>(event.arguments[6]) << 8) |
                         static_cast<uint32_t>(event.arguments[7]);
+                    clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(event_delta)));
                     clip.smf2clip.emplace_back(umppi::UmpFactory::midi2ChannelMessage8_8_32(
                         static_cast<uint8_t>(event.arguments[1] / 0x10),
                         static_cast<uint8_t>(event.arguments[0]),
@@ -3205,18 +3214,20 @@ bool generateSmf2Clips(const SemanticTree& tree,
                 std::vector<uint8_t> sysex8{0, 0, 0, 0, 0xFF, 0xFF, 0xFF};
                 sysex8.insert(sysex8.end(), event.arguments.begin() + 1, event.arguments.end());
                 auto umps = umppi::UmpFactory::sysex8(0, sysex8);
-                clip.smf2clip.insert(clip.smf2clip.end(), umps.begin(), umps.end());
+                append_message(umps);
             } else if (!event.arguments.empty() && event.arguments[0] == 0xF0) {
                 std::vector<uint8_t> sysex7(event.arguments.begin() + 1, event.arguments.end());
                 auto umps = umppi::UmpFactory::sysex7(0, sysex7);
-                clip.smf2clip.insert(clip.smf2clip.end(), umps.begin(), umps.end());
+                append_message(umps);
             } else if (!event.arguments.empty() && (event.arguments[0] & 0xF0) == 0xF0) {
+                clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(event_delta)));
                 clip.smf2clip.emplace_back(umppi::UmpFactory::systemMessage(
                     0,
                     event.arguments[0],
                     event.arguments.size() > 1 ? event.arguments[1] : 0,
                     event.arguments.size() > 2 ? event.arguments[2] : 0));
             } else if (!event.arguments.empty()) {
+                clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(event_delta)));
                 clip.smf2clip.emplace_back(umppi::UmpFactory::midi1Message(
                     0,
                     static_cast<uint8_t>(event.arguments[0] & 0xF0),
@@ -3228,6 +3239,7 @@ bool generateSmf2Clips(const SemanticTree& tree,
             current_tick = normalized_tick;
         }
 
+        clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
         clip.smf2clip.push_back(umppi::UmpFactory::endOfClip());
         tracks.push_back(TrackCompilationResult{
             .track_id = track_id++,

@@ -1,5 +1,6 @@
 #include <augene2/compiler.hpp>
 
+#include <cctype>
 #include <format>
 #include <set>
 #include <string>
@@ -113,6 +114,119 @@ std::vector<std::string> extractInstrumentNames(const mugene2::TrackCompilationR
     return names;
 }
 
+std::string sanitizeGraphAssetName(std::string_view raw_name) {
+    std::string sanitized;
+    sanitized.reserve(raw_name.size());
+
+    bool last_was_separator = false;
+    for (unsigned char ch : raw_name) {
+        if (std::isalnum(ch) || ch == '_' || ch == '-' || ch == '.') {
+            sanitized.push_back(static_cast<char>(ch));
+            last_was_separator = false;
+        } else {
+            if (!last_was_separator) {
+                sanitized.push_back('_');
+                last_was_separator = true;
+            }
+        }
+    }
+
+    while (!sanitized.empty() && (sanitized.front() == '.' || sanitized.front() == '_'))
+        sanitized.erase(sanitized.begin());
+    while (!sanitized.empty() && sanitized.back() == '_')
+        sanitized.pop_back();
+
+    if (sanitized.empty())
+        sanitized = "graph";
+    return sanitized;
+}
+
+std::optional<augene2::ProjectClip> extractMasterClip(const mugene2::LocatedClip& source_clip) {
+    if (source_clip.smf2clip.size() < 4)
+        return std::nullopt;
+
+    augene2::ProjectClip master_clip;
+    master_clip.kind = augene2::ProjectClipKind::midi2;
+    master_clip.position_dctpq = source_clip.position_dctpq;
+    master_clip.smf2clip.reserve(source_clip.smf2clip.size());
+    master_clip.smf2clip.push_back(source_clip.smf2clip[0]);
+    master_clip.smf2clip.push_back(source_clip.smf2clip[1]);
+    master_clip.smf2clip.push_back(source_clip.smf2clip[2]);
+    master_clip.smf2clip.push_back(source_clip.smf2clip[3]);
+
+    bool expect_delta = true;
+    uint32_t pending_delta = 0;
+    bool has_master_events = false;
+
+    auto decodeMasterEvent = [](const umppi::Ump& ump) -> std::optional<umppi::Ump> {
+        if (ump.getMessageType() != umppi::MessageType::FLEX_DATA)
+            return std::nullopt;
+
+        const auto address = static_cast<uint8_t>((ump.getStatusByte() >> 4) & 0xF);
+        const auto channel = ump.getChannelInGroup();
+        const auto status_bank = static_cast<uint8_t>((ump.int1 >> 8) & 0xFF);
+        const auto status = static_cast<uint8_t>(ump.int1 & 0xFF);
+
+        if (address != umppi::FlexDataAddress::GROUP ||
+            status_bank != umppi::FlexDataStatusBank::SETUP_AND_PERFORMANCE) {
+            return std::nullopt;
+        }
+
+        if (status == umppi::FlexDataStatus::TEMPO) {
+            return umppi::UmpFactory::tempo(ump.getGroup(), channel, ump.int2);
+        }
+
+        if (status == umppi::FlexDataStatus::TIME_SIGNATURE) {
+            const auto numerator = static_cast<uint8_t>((ump.int2 >> 24) & 0xFF);
+            const auto raw_denominator = static_cast<uint8_t>((ump.int2 >> 16) & 0xFF);
+            const auto number_of_32_notes = static_cast<uint8_t>((ump.int2 >> 8) & 0xFF);
+            return umppi::UmpFactory::timeSignatureDirect(
+                ump.getGroup(), channel, numerator, raw_denominator, number_of_32_notes);
+        }
+
+        return std::nullopt;
+    };
+
+    for (std::size_t index = 4; index < source_clip.smf2clip.size(); ++index) {
+        const auto& ump = source_clip.smf2clip[index];
+        if (expect_delta) {
+            if (!ump.isDeltaClockstamp())
+                continue;
+            pending_delta = ump.getDeltaClockstamp();
+            expect_delta = false;
+            continue;
+        }
+
+        if (ump.isEndOfClip())
+            break;
+
+        if (auto master_event = decodeMasterEvent(ump)) {
+            master_clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(pending_delta)));
+            master_clip.smf2clip.push_back(*master_event);
+            has_master_events = true;
+        }
+
+        expect_delta = true;
+    }
+
+    if (!has_master_events)
+        return std::nullopt;
+
+    master_clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
+    master_clip.smf2clip.push_back(umppi::UmpFactory::endOfClip());
+    return master_clip;
+}
+
+std::string serializeClipIdentity(const augene2::ProjectClip& clip) {
+    std::string key = std::to_string(clip.position_dctpq);
+    key.push_back('|');
+    for (const auto& ump : clip.smf2clip) {
+        const auto bytes = ump.toBytes();
+        key.append(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    }
+    return key;
+}
+
 } // namespace
 
 namespace augene2 {
@@ -138,6 +252,7 @@ ProjectCompilationResult compile_project(std::span<const mugene2::SourceText> so
     if (!mml_result.success())
         return result;
 
+    std::set<std::string> master_clip_keys;
     result.project.tracks.reserve(mml_result.tracks.size());
     for (const auto& compiled_track : mml_result.tracks) {
         ProjectTrack track;
@@ -167,6 +282,18 @@ ProjectCompilationResult compile_project(std::span<const mugene2::SourceText> so
             }
 
             if (graph_asset) {
+                const auto sanitized_name = sanitizeGraphAssetName(graph_asset->value);
+                if (sanitized_name != graph_asset->value) {
+                    result.diagnostics.push_back(ProjectDiagnostic{
+                        .severity = ProjectDiagnosticSeverity::information,
+                        .message = std::format(
+                            "Graph asset name '{}' on {} was sanitized to '{}'.",
+                            graph_asset->value,
+                            track.id,
+                            sanitized_name),
+                    });
+                }
+                graph_asset->value = sanitized_name;
                 track.graph_asset_name = std::move(*graph_asset);
             } else {
                 result.diagnostics.push_back(ProjectDiagnostic{
@@ -181,11 +308,27 @@ ProjectCompilationResult compile_project(std::span<const mugene2::SourceText> so
 
         track.clips.reserve(compiled_track.clips.size());
         for (const auto& compiled_clip : compiled_track.clips) {
+            if (auto master_clip = extractMasterClip(compiled_clip)) {
+                auto clip_key = serializeClipIdentity(*master_clip);
+                if (master_clip_keys.insert(std::move(clip_key)).second)
+                    result.project.master_clips.push_back(std::move(*master_clip));
+            }
+
             ProjectClip clip;
             clip.kind = ProjectClipKind::midi2;
             clip.position_dctpq = compiled_clip.position_dctpq;
             clip.smf2clip = compiled_clip.smf2clip;
             track.clips.push_back(std::move(clip));
+        }
+
+        if (!track.graph_asset_name) {
+            result.diagnostics.push_back(ProjectDiagnostic{
+                .severity = ProjectDiagnosticSeverity::information,
+                .message = std::format(
+                    "Skipping {} because no graph asset was resolved.",
+                    track.id),
+            });
+            continue;
         }
 
         result.project.tracks.push_back(std::move(track));

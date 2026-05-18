@@ -31,6 +31,17 @@ struct GraphAssetName {
     [[nodiscard]] bool empty() const noexcept { return value.empty(); }
 };
 
+struct GraphPlugin {
+    std::string plugin_id{};
+    std::string format{};
+    std::string display_name{};
+};
+
+struct ProjectGraphAsset {
+    GraphAssetName name{};
+    std::vector<GraphPlugin> plugins{};
+};
+
 enum class ProjectClipKind {
     midi2,
     external,
@@ -53,6 +64,8 @@ struct ProjectTrack {
 
 struct Project {
     std::string title{};
+    std::vector<ProjectGraphAsset> graph_assets{};
+    std::vector<ProjectClip> master_clips{};
     std::vector<ProjectTrack> tracks{};
 };
 

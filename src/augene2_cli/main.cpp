@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
     if (!result.success())
         return 3;
 
-    const auto resolved_output_path = output_path.value_or(replaceExtension(input_paths.back(), ".uapmd.json"));
+    const auto resolved_output_path = output_path.value_or(replaceExtension(input_paths.back(), ".uapmd"));
     augene2::UapmdProjectStorage storage;
     std::string error;
 
@@ -188,6 +188,12 @@ int main(int argc, char** argv) {
                 std::filesystem::remove(existing_project_dir / clip.file, ec);
             }
         }
+        for (const auto& clip : existing_project->master_clips) {
+            if (clip.kind != augene2::ProjectClipKind::midi2 || clip.file.empty())
+                continue;
+            std::error_code ec;
+            std::filesystem::remove(existing_project_dir / clip.file, ec);
+        }
 
         if (result.project.title.empty())
             result.project.title = existing_project->title;
@@ -202,6 +208,7 @@ int main(int argc, char** argv) {
         std::erase_if(existing_project->tracks, [](const augene2::ProjectTrack& track) {
             return track.clips.empty();
         });
+        existing_project->master_clips = std::move(result.project.master_clips);
         for (auto& track : result.project.tracks)
             existing_project->tracks.push_back(std::move(track));
         result.project = std::move(*existing_project);
