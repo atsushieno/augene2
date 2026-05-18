@@ -4,7 +4,7 @@
 #include "MugeneLexer.h"
 #include "MugeneParser.h"
 
-namespace augene2::detail {
+namespace mugene2::detail {
 
 bool antlrSmokeParsesExpression(const std::string& text) {
     antlr4::ANTLRInputStream input(text);
@@ -15,4 +15,4 @@ bool antlrSmokeParsesExpression(const std::string& text) {
     return parser.getNumberOfSyntaxErrors() == 0;
 }
 
-} // namespace augene2::detail
+} // namespace mugene2::detail

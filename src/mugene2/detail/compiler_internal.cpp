@@ -15,7 +15,7 @@
 #include "MugeneParserBaseVisitor.h"
 #include "MugeneLexer.h"
 
-namespace augene2::detail {
+namespace mugene2::detail {
 
 namespace {
 
@@ -3254,4 +3254,4 @@ bool generateSmf(const SemanticTree& tree,
     return true;
 }
 
-} // namespace augene2::detail
+} // namespace mugene2::detail

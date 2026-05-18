@@ -1,95 +1,40 @@
 #pragma once
 
-#include <algorithm>
-#include <cstdint>
-#include <functional>
-#include <optional>
-#include <span>
-#include <string>
-#include <string_view>
-#include <vector>
-
-#include <umppi/umppi.hpp>
+#include <mugene2/mugene2.hpp>
 
 namespace augene2 {
 
-enum class DiagnosticSeverity {
-    error,
-    warning,
-    information,
-};
+using DiagnosticSeverity = mugene2::DiagnosticSeverity;
+using Diagnostic = mugene2::Diagnostic;
+using LocatedClip = mugene2::LocatedClip;
+using TrackCompilationResult = mugene2::TrackCompilationResult;
+using CompilationResult = mugene2::CompilationResult;
+using SmfCompilationResult = mugene2::SmfCompilationResult;
+using SourceText = mugene2::SourceText;
+using DefaultMmlProfile = mugene2::DefaultMmlProfile;
+using CompileOptions = mugene2::CompileOptions;
+using IncludeResolver = mugene2::IncludeResolver;
 
-struct Diagnostic {
-    DiagnosticSeverity severity{DiagnosticSeverity::error};
-    std::string source_name{};
-    int line{0};
-    int column{0};
-    std::string message{};
-};
+inline CompilationResult compile_to_smf2clips(std::span<const SourceText> sources,
+                                              const CompileOptions& options,
+                                              IncludeResolver resolver = {}) {
+    return mugene2::compile_to_smf2clips(sources, options, std::move(resolver));
+}
 
-struct LocatedClip {
-    uint64_t position_dctpq{};
-    std::vector<umppi::Ump> smf2clip{};
-};
+inline CompilationResult compile_to_smf2clips(std::span<const SourceText> sources,
+                                              IncludeResolver resolver = {}) {
+    return mugene2::compile_to_smf2clips(sources, std::move(resolver));
+}
 
-struct TrackCompilationResult {
-    uint32_t track_id{};
-    std::vector<LocatedClip> clips{};
-};
+inline SmfCompilationResult compile_to_smf(std::span<const SourceText> sources,
+                                           const CompileOptions& options,
+                                           IncludeResolver resolver = {}) {
+    return mugene2::compile_to_smf(sources, options, std::move(resolver));
+}
 
-struct CompilationResult {
-    std::vector<Diagnostic> diagnostics{};
-    std::vector<TrackCompilationResult> tracks{};
-
-    [[nodiscard]] bool success() const {
-        return std::none_of(diagnostics.begin(), diagnostics.end(), [](const Diagnostic& diagnostic) {
-            return diagnostic.severity == DiagnosticSeverity::error;
-        });
-    }
-};
-
-struct SmfCompilationResult {
-    std::vector<Diagnostic> diagnostics{};
-    std::vector<uint8_t> smf{};
-
-    [[nodiscard]] bool success() const {
-        return std::none_of(diagnostics.begin(), diagnostics.end(), [](const Diagnostic& diagnostic) {
-            return diagnostic.severity == DiagnosticSeverity::error;
-        });
-    }
-};
-
-struct SourceText {
-    std::string name{};
-    std::string text{};
-};
-
-enum class DefaultMmlProfile {
-    midi1,
-    midi2,
-};
-
-struct CompileOptions {
-    bool skip_default_mml_files{false};
-    DefaultMmlProfile default_mml_profile{DefaultMmlProfile::midi2};
-};
-
-using IncludeResolver = std::function<std::optional<SourceText>(
-    std::string_view including_source,
-    std::string_view requested_path)>;
-
-CompilationResult compile_to_smf2clips(std::span<const SourceText> sources,
-                                       const CompileOptions& options,
-                                       IncludeResolver resolver = {});
-
-CompilationResult compile_to_smf2clips(std::span<const SourceText> sources,
-                                       IncludeResolver resolver = {});
-
-SmfCompilationResult compile_to_smf(std::span<const SourceText> sources,
-                                    const CompileOptions& options,
-                                    IncludeResolver resolver = {});
-
-SmfCompilationResult compile_to_smf(std::span<const SourceText> sources,
-                                    IncludeResolver resolver = {});
+inline SmfCompilationResult compile_to_smf(std::span<const SourceText> sources,
+                                           IncludeResolver resolver = {}) {
+    return mugene2::compile_to_smf(sources, std::move(resolver));
+}
 
 } // namespace augene2

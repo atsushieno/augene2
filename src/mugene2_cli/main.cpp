@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <augene2/augene2.hpp>
+#include <mugene2/mugene2.hpp>
 
 namespace {
 
@@ -20,12 +20,12 @@ std::optional<std::string> readFile(const std::string& path) {
     return buffer.str();
 }
 
-void printDiagnostic(const augene2::Diagnostic& diagnostic) {
+void printDiagnostic(const mugene2::Diagnostic& diagnostic) {
     const char* severity = "error";
     switch (diagnostic.severity) {
-        case augene2::DiagnosticSeverity::warning: severity = "warning"; break;
-        case augene2::DiagnosticSeverity::information: severity = "information"; break;
-        case augene2::DiagnosticSeverity::error: break;
+        case mugene2::DiagnosticSeverity::warning: severity = "warning"; break;
+        case mugene2::DiagnosticSeverity::information: severity = "information"; break;
+        case mugene2::DiagnosticSeverity::error: break;
     }
 
     if (!diagnostic.source_name.empty())
@@ -47,8 +47,8 @@ std::string replaceExtension(const std::string& path, const std::string& extensi
 } // namespace
 
 int main(int argc, char** argv) {
-    augene2::CompileOptions options;
-    options.default_mml_profile = augene2::DefaultMmlProfile::midi1;
+    mugene2::CompileOptions options;
+    options.default_mml_profile = mugene2::DefaultMmlProfile::midi1;
     bool midi2 = false;
     std::optional<std::string> output_path;
     std::vector<std::string> input_paths;
@@ -62,12 +62,12 @@ int main(int argc, char** argv) {
         }
         if (arg == "--midi2" || arg == "--midi2x" || arg == "--midi2-defaults") {
             midi2 = true;
-            options.default_mml_profile = augene2::DefaultMmlProfile::midi2;
+            options.default_mml_profile = mugene2::DefaultMmlProfile::midi2;
             continue;
         }
         if (arg == "--midi1-defaults") {
             midi2 = false;
-            options.default_mml_profile = augene2::DefaultMmlProfile::midi1;
+            options.default_mml_profile = mugene2::DefaultMmlProfile::midi1;
             continue;
         }
         if (arg == "--smf-out") {
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
             continue;
         }
         if (arg == "--help") {
-            std::cerr << "usage: augene2-cli [--midi2|--midi2x] [--nodefault] [--output:path] [mml files]\n";
+            std::cerr << "usage: mugene2-cli [--midi2|--midi2x] [--nodefault] [--output:path] [mml files]\n";
             return 0;
         }
         if (arg == "--verbose" || arg == "--disable-running-status" || arg.starts_with("--encoding:")) {
@@ -93,11 +93,11 @@ int main(int argc, char** argv) {
     }
 
     if (input_paths.empty()) {
-        std::cerr << "usage: augene2-cli [--midi2|--midi2x] [--nodefault] [--output:path] [mml files]\n";
+        std::cerr << "usage: mugene2-cli [--midi2|--midi2x] [--nodefault] [--output:path] [mml files]\n";
         return 1;
     }
 
-    std::vector<augene2::SourceText> sources;
+    std::vector<mugene2::SourceText> sources;
     sources.reserve(input_paths.size());
     for (const auto& path : input_paths) {
         auto text = readFile(path);
@@ -105,20 +105,20 @@ int main(int argc, char** argv) {
             std::cerr << "failed to read: " << path << '\n';
             return 2;
         }
-        sources.push_back(augene2::SourceText{path, *text});
+        sources.push_back(mugene2::SourceText{path, *text});
     }
 
     auto resolver = [](std::string_view including_source,
-                       std::string_view requested_path) -> std::optional<augene2::SourceText> {
+                       std::string_view requested_path) -> std::optional<mugene2::SourceText> {
         (void) including_source;
         auto text = readFile(std::string(requested_path));
         if (!text)
             return std::nullopt;
-        return augene2::SourceText{std::string(requested_path), *text};
+        return mugene2::SourceText{std::string(requested_path), *text};
     };
 
     if (!midi2) {
-        auto result = augene2::compile_to_smf(sources, options, resolver);
+        auto result = mugene2::compile_to_smf(sources, options, resolver);
         for (const auto& diagnostic : result.diagnostics)
             printDiagnostic(diagnostic);
 

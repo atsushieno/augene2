@@ -11,9 +11,9 @@
 
 #include <antlr4-runtime.h>
 
-#include <augene2/augene2.hpp>
+#include <mugene2/mugene2.hpp>
 
-namespace augene2::detail {
+namespace mugene2::detail {
 
 struct LineInfo {
     std::string source_name{};
@@ -317,4 +317,4 @@ bool generateSmf(const SemanticTree& tree,
                  DiagnosticSink& diagnostics,
                  std::vector<uint8_t>& smf);
 
-} // namespace augene2::detail
+} // namespace mugene2::detail

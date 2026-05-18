@@ -1,4 +1,4 @@
-#include <augene2/augene2.hpp>
+#include <mugene2/mugene2.hpp>
 
 #include "detail/compiler_internal.hpp"
 
@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace augene2 {
+namespace mugene2 {
 
 namespace {
 
@@ -121,4 +121,4 @@ SmfCompilationResult compile_to_smf(std::span<const SourceText> sources,
     return compile_to_smf(sources, options, std::move(resolver));
 }
 
-} // namespace augene2
+} // namespace mugene2

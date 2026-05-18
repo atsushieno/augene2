@@ -68,39 +68,66 @@ ANTLR_TARGET(Augene2Parser
     DEPENDS_ANTLR Augene2Lexer
 )
 
-add_library(augene2 STATIC
-    src/augene2.cpp
-    src/detail/compiler_internal.cpp
-    src/detail/antlr_smoke.cpp
+add_library(mugene2 STATIC
+    src/mugene2/mugene2.cpp
+    src/mugene2/detail/compiler_internal.cpp
+    src/mugene2/detail/antlr_smoke.cpp
     ${ANTLR_Augene2Lexer_CXX_OUTPUTS}
     ${ANTLR_Augene2Parser_CXX_OUTPUTS}
 )
 
-target_include_directories(augene2
+target_include_directories(mugene2
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${midicci_SOURCE_DIR}/include
     PRIVATE
         ${AUGENE2_ANTLR_OUTPUT_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/mugene2
 )
 
-target_compile_definitions(augene2
+target_compile_definitions(mugene2
     PRIVATE
         AUGENE2_RESOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources"
 )
 
-target_link_libraries(augene2
+target_link_libraries(mugene2
     PUBLIC
         umppi_static
     PRIVATE
         antlr4_static
 )
 
+add_library(mugene2::mugene2 ALIAS mugene2)
+
+add_executable(mugene2-cli
+    src/mugene2_cli/main.cpp
+)
+
+target_link_libraries(mugene2-cli
+    PRIVATE
+        mugene2
+)
+
+add_library(augene2 STATIC
+    src/augene2/project_compiler.cpp
+    src/augene2/storage.cpp
+)
+
+target_include_directories(augene2
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${midicci_SOURCE_DIR}/include
+)
+
+target_link_libraries(augene2
+    PUBLIC
+        mugene2
+)
+
 add_library(augene2::augene2 ALIAS augene2)
 
 add_executable(augene2-cli
-    src/cli/main.cpp
+    src/augene2_cli/main.cpp
 )
 
 target_link_libraries(augene2-cli
