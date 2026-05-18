@@ -54,6 +54,13 @@ else()
     unset(BUILD_SHARED_LIBS)
 endif()
 
+CPMAddPackage(
+    NAME            choc
+    GIT_TAG         1857a38
+    GIT_REPOSITORY  https://github.com/Tracktion/choc
+    DOWNLOAD_ONLY YES
+)
+
 set(AUGENE2_ANTLR_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/antlr")
 ANTLR_TARGET(Augene2Lexer
     ${CMAKE_CURRENT_SOURCE_DIR}/grammar/MugeneLexer.g4
@@ -117,6 +124,8 @@ target_include_directories(augene2
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${midicci_SOURCE_DIR}/include
+    PRIVATE
+        ${choc_SOURCE_DIR}
 )
 
 target_link_libraries(augene2

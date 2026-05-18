@@ -2773,7 +2773,14 @@ private:
                                 flex_data_status = umppi::MetadataTextStatus::UNKNOWN;
                                 break;
                             case umppi::MidiMetaType::TRACK_NAME:
-                                flex_data_status = umppi::MetadataTextStatus::COMPOSITION_NAME;
+                                flex_data_status = umppi::MetadataTextStatus::MIDI_CLIP_NAME;
+                                break;
+                            case umppi::MidiMetaType::INSTRUMENT_NAME:
+                                flex_data_status = umppi::MetadataTextStatus::UNKNOWN;
+                                break;
+                            case umppi::MidiMetaType::MARKER:
+                            case umppi::MidiMetaType::CUE_POINT:
+                                flex_data_status = umppi::MetadataTextStatus::UNKNOWN;
                                 break;
                             default:
                                 break;
@@ -2782,15 +2789,53 @@ private:
                 }
 
                 if (is_midi2_ && flex_data_status >= 0 && args.size() > 1) {
+                    std::string text_value = resolvedValueToString(args[1]);
+                    auto first = resolvedByteArrayValue(args.front(), operation.location, tree_.base_count, diagnostics_);
+                    if (!first.empty()) {
+                        switch (first[0]) {
+                            case umppi::MidiMetaType::INSTRUMENT_NAME:
+                                text_value = "InstrumentName: " + text_value;
+                                break;
+                            case umppi::MidiMetaType::MARKER:
+                                text_value = "Marker: " + text_value;
+                                break;
+                            case umppi::MidiMetaType::CUE_POINT:
+                                text_value = "Cue: " + text_value;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                     auto umps = umppi::UmpFactory::metadataText(
                         0, umppi::FlexDataAddress::GROUP, 0, static_cast<uint8_t>(flex_data_status),
-                        resolvedValueToString(args[1]));
+                        text_value);
                     ResolvedEvent event{.operation = "FLEX_TEXT", .tick = context.timeline_position};
                     for (const auto& ump : umps) {
                         auto bytes = ump.toPlatformBytes();
                         event.arguments.insert(event.arguments.end(), bytes.begin(), bytes.end());
                     }
                     appendCurrentEvent(event);
+                } else if (is_midi2_ && args.size() > 1) {
+                    auto first = resolvedByteArrayValue(args.front(), operation.location, tree_.base_count, diagnostics_);
+                    if (!first.empty() && first[0] == umppi::MidiMetaType::LYRIC) {
+                        auto umps = umppi::UmpFactory::performanceText(
+                            0, umppi::FlexDataAddress::GROUP, 0, umppi::PerformanceTextStatus::LYRICS,
+                            resolvedValueToString(args[1]));
+                        ResolvedEvent event{.operation = "FLEX_TEXT", .tick = context.timeline_position};
+                        for (const auto& ump : umps) {
+                            auto bytes = ump.toPlatformBytes();
+                            event.arguments.insert(event.arguments.end(), bytes.begin(), bytes.end());
+                        }
+                        appendCurrentEvent(event);
+                    } else {
+                        ResolvedEvent event{.operation = "META", .tick = context.timeline_position};
+                        event.arguments.push_back(0xFF);
+                        for (const auto& arg : args) {
+                            auto bytes = resolvedByteArrayValue(arg, operation.location, tree_.base_count, diagnostics_);
+                            event.arguments.insert(event.arguments.end(), bytes.begin(), bytes.end());
+                        }
+                        appendCurrentEvent(event);
+                    }
                 } else {
                     ResolvedEvent event{.operation = "META", .tick = context.timeline_position};
                     event.arguments.push_back(0xFF);

@@ -31,10 +31,17 @@ struct GraphAssetName {
     [[nodiscard]] bool empty() const noexcept { return value.empty(); }
 };
 
+enum class ProjectClipKind {
+    midi2,
+    external,
+};
+
 struct ProjectClip {
+    ProjectClipKind kind{ProjectClipKind::midi2};
     uint64_t position_dctpq{};
     std::vector<umppi::Ump> smf2clip{};
     std::string name{};
+    std::string file{};
 };
 
 struct ProjectTrack {

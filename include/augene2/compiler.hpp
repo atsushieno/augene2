@@ -10,6 +10,7 @@ namespace augene2 {
 
 struct ProjectCompileOptions {
     mugene2::CompileOptions mml_options{};
+    bool use_instrument_name_as_graph_asset_name_by_default{true};
 };
 
 ProjectCompilationResult compile_project(std::span<const mugene2::SourceText> sources,
