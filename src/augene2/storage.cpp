@@ -233,6 +233,8 @@ std::filesystem::path resolveProjectFilePath(const std::filesystem::path& path,
 
 choc::value::Value saveProjectToJson(const Project& project) {
     auto root = choc::value::createObject("UapmdProject");
+    if (!project.title.empty())
+        root.addMember("title", project.title);
 
     auto save_clips = [](const std::vector<ProjectClip>& clips, std::string_view clip_id_prefix) {
         auto clips_array = choc::value::createEmptyArray();
@@ -267,6 +269,12 @@ choc::value::Value saveProjectToJson(const Project& project) {
     auto tracks_array = choc::value::createEmptyArray();
     for (const auto& track : project.tracks) {
         auto track_json = choc::value::createObject("UapmdTrack");
+        if (!track.id.empty())
+            track_json.addMember("id", track.id);
+        if (!track.name.empty())
+            track_json.addMember("name", track.name);
+        if (!track.instrument_name.empty())
+            track_json.addMember("instrument_name", track.instrument_name);
         if (track.graph_asset_name) {
             auto graph_json = choc::value::createObject("UapmdPluginGraph");
             graph_json.addMember("external_file", std::format("graphs/{}.graph.json",
@@ -464,6 +472,8 @@ std::unique_ptr<Project> UapmdProjectStorage::load(const std::filesystem::path& 
         ProjectTrack track;
         if (track_json.hasObjectMember("id"))
             track.id = std::string(track_json["id"].getString());
+        if (track_json.hasObjectMember("name"))
+            track.name = std::string(track_json["name"].getString());
         if (track_json.hasObjectMember("instrument_name"))
             track.instrument_name = std::string(track_json["instrument_name"].getString());
         if (track.id.empty())

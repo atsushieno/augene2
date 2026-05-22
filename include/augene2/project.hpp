@@ -57,6 +57,7 @@ struct ProjectClip {
 
 struct ProjectTrack {
     std::string id{};
+    std::string name{};
     std::string instrument_name{};
     std::optional<GraphAssetName> graph_asset_name{};
     std::vector<ProjectClip> clips{};

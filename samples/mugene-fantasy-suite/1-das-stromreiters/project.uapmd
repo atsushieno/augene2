@@ -1,3 +1,245 @@
 {
-  "tracks": []
+  "title": "./samples/mugene-fantasy-suite/1-das-stromreiters.mugene",
+  "tracks": [
+    {
+      "id": "track_3",
+      "graph": {
+        "external_file": "graphs/ch1-p57.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_3_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_4",
+      "graph": {
+        "external_file": "graphs/ch2-p56.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_4_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_5",
+      "graph": {
+        "external_file": "graphs/ch3-p60.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_5_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_6",
+      "graph": {
+        "external_file": "graphs/ch4-p47.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_6_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_7",
+      "graph": {
+        "external_file": "graphs/ch5-p48.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_7_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_8",
+      "graph": {
+        "external_file": "graphs/ch6-p40.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_8_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_9",
+      "graph": {
+        "external_file": "graphs/ch7-p41.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_9_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_10",
+      "graph": {
+        "external_file": "graphs/ch8-p48.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_10_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_11",
+      "graph": {
+        "external_file": "graphs/ch9-p43.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_11_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_13",
+      "graph": {
+        "external_file": "graphs/ch11-p72.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_13_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_14",
+      "graph": {
+        "external_file": "graphs/ch12-p71.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_14_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_15",
+      "graph": {
+        "external_file": "graphs/ch13-p52.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_15_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_17",
+      "graph": {
+        "external_file": "graphs/ch15-p46.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_17_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_18",
+      "graph": {
+        "external_file": "graphs/ch3-p58.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_18_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_19",
+      "graph": {
+        "external_file": "graphs/ch12-p73.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_19_clip_1.midi2"
+        }
+      ]
+    },
+    {
+      "id": "track_20",
+      "graph": {
+        "external_file": "graphs/ch15-p45.graph.json"
+      },
+      "clips": [
+        {
+          "clip_type": "midi",
+          "tick_resolution": 48,
+          "mime_type": "audio/midi2",
+          "position_samples": 0,
+          "file": "clips/track_20_clip_1.midi2"
+        }
+      ]
+    }
+  ]
 }

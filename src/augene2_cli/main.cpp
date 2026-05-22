@@ -24,6 +24,14 @@ std::optional<std::string> readFile(const std::string& path) {
     return buffer.str();
 }
 
+std::optional<std::vector<uint8_t>> readBinaryFile(const std::string& path) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return std::nullopt;
+
+    return std::vector<uint8_t>(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+}
+
 std::string replaceExtension(const std::string& path, const std::string& extension) {
     const auto last_dot = path.find_last_of('.');
     if (last_dot == std::string::npos)
@@ -114,7 +122,7 @@ int main(int argc, char** argv) {
         if (arg == "--help") {
             std::cerr << "usage: augene2-cli [--midi1-defaults|--midi2-defaults] [--nodefault] "
                          "[--no-default-graph-asset-name] [--graph-map instrument=asset] "
-                         "[--output path] [--update-midi2 project] [mml files]\n";
+                         "[--output path] [--update-midi2 project] [mml or .mid file]\n";
             return 0;
         }
         input_paths.emplace_back(arg);
@@ -123,41 +131,68 @@ int main(int argc, char** argv) {
     if (input_paths.empty()) {
         std::cerr << "usage: augene2-cli [--midi1-defaults|--midi2-defaults] [--nodefault] "
                      "[--no-default-graph-asset-name] [--graph-map instrument=asset] "
-                     "[--output path] [--update-midi2 project] [mml files]\n";
+                     "[--output path] [--update-midi2 project] [mml or .mid file]\n";
         return 1;
     }
 
-    std::vector<mugene2::SourceText> sources;
-    sources.reserve(input_paths.size());
-    for (const auto& path : input_paths) {
-        auto text = readFile(path);
-        if (!text) {
-            std::cerr << "failed to read: " << path << '\n';
+    auto extension = std::filesystem::path(input_paths.front()).extension().string();
+    std::ranges::transform(extension, extension.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    const bool import_smf = input_paths.size() == 1 &&
+        (extension == ".mid" || extension == ".midi");
+
+    augene2::ProjectCompilationResult result;
+    if (import_smf) {
+        auto smf_data = readBinaryFile(input_paths.front());
+        if (!smf_data) {
+            std::cerr << "failed to read: " << input_paths.front() << '\n';
             return 2;
         }
-        sources.push_back(mugene2::SourceText{path, *text});
-    }
 
-    auto resolver = [](std::string_view including_source,
-                       std::string_view requested_path) -> std::optional<mugene2::SourceText> {
-        (void) including_source;
-        auto text = readFile(std::string(requested_path));
-        if (!text)
-            return std::nullopt;
-        return mugene2::SourceText{std::string(requested_path), *text};
-    };
+        augene2::GraphAssetResolver graph_resolver;
+        if (!graph_asset_map.empty()) {
+            graph_resolver = [&graph_asset_map](std::string_view instrument_name) -> std::optional<augene2::GraphAssetName> {
+                auto it = graph_asset_map.find(std::string(instrument_name));
+                if (it == graph_asset_map.end())
+                    return std::nullopt;
+                return augene2::GraphAssetName{it->second};
+            };
+        }
+        result = augene2::compile_project_from_smf(input_paths.front(), *smf_data, options, std::move(graph_resolver));
+    } else {
+        std::vector<mugene2::SourceText> sources;
+        sources.reserve(input_paths.size());
+        for (const auto& path : input_paths) {
+            auto text = readFile(path);
+            if (!text) {
+                std::cerr << "failed to read: " << path << '\n';
+                return 2;
+            }
+            sources.push_back(mugene2::SourceText{path, *text});
+        }
 
-    augene2::GraphAssetResolver graph_resolver;
-    if (!graph_asset_map.empty()) {
-        graph_resolver = [&graph_asset_map](std::string_view instrument_name) -> std::optional<augene2::GraphAssetName> {
-            auto it = graph_asset_map.find(std::string(instrument_name));
-            if (it == graph_asset_map.end())
+        auto resolver = [](std::string_view including_source,
+                           std::string_view requested_path) -> std::optional<mugene2::SourceText> {
+            (void) including_source;
+            auto text = readFile(std::string(requested_path));
+            if (!text)
                 return std::nullopt;
-            return augene2::GraphAssetName{it->second};
+            return mugene2::SourceText{std::string(requested_path), *text};
         };
+
+        augene2::GraphAssetResolver graph_resolver;
+        if (!graph_asset_map.empty()) {
+            graph_resolver = [&graph_asset_map](std::string_view instrument_name) -> std::optional<augene2::GraphAssetName> {
+                auto it = graph_asset_map.find(std::string(instrument_name));
+                if (it == graph_asset_map.end())
+                    return std::nullopt;
+                return augene2::GraphAssetName{it->second};
+            };
+        }
+        result = augene2::compile_project(sources, options, resolver, std::move(graph_resolver));
     }
 
-    auto result = augene2::compile_project(sources, options, resolver, std::move(graph_resolver));
     for (const auto& diagnostic : result.diagnostics)
         printDiagnostic(diagnostic);
 
@@ -225,6 +260,8 @@ int main(int argc, char** argv) {
     std::cout << "Compiled project with " << result.project.tracks.size() << " track(s)\n";
     for (const auto& track : result.project.tracks) {
         std::cout << track.id;
+        if (!track.name.empty())
+            std::cout << " name=\"" << track.name << '"';
         if (!track.instrument_name.empty())
             std::cout << " instrument=" << track.instrument_name;
         if (track.graph_asset_name)
