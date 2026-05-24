@@ -1,6 +1,9 @@
 {
+  "title": "./samples/mars/mars_sfizz2.mugene",
   "tracks": [
     {
+      "id": "track_2",
+      "instrument_name": "sfizz_vpo3_piccolo_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_piccolo_ks_simple_reverb.graph.json"
       },
@@ -10,11 +13,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Piccolos",
           "file": "clips/track_2_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_3",
+      "instrument_name": "sfizz_vpo3_flute_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_flute_sec_ks_simple_reverb.graph.json"
       },
@@ -24,11 +30,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Flutes",
           "file": "clips/track_3_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_4",
+      "instrument_name": "sfizz_vpo3_oboe_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_oboe_sec_ks_simple_reverb.graph.json"
       },
@@ -38,11 +47,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Oboes",
           "file": "clips/track_4_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_5",
+      "instrument_name": "sfizz_vpo3_english_horn_perf_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_english_horn_perf_ks_simple_reverb.graph.json"
       },
@@ -52,11 +64,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "English Horn",
           "file": "clips/track_5_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_6",
+      "instrument_name": "sfizz_vpo3_oboe_sec_perf_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_oboe_sec_perf_ks_simple_reverb.graph.json"
       },
@@ -66,11 +81,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Bass Oboe",
           "file": "clips/track_6_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_7",
+      "instrument_name": "sfizz_vpo3_clarinet_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_clarinet_sec_ks_simple_reverb.graph.json"
       },
@@ -80,11 +98,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Clarinets",
           "file": "clips/track_7_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_8",
+      "instrument_name": "sfizz_vpo3_bass_clarinet_perf_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_bass_clarinet_perf_ks_simple_reverb.graph.json"
       },
@@ -94,11 +115,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Bass Clarinets",
           "file": "clips/track_8_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_9",
+      "instrument_name": "sfizz_vpo3_bassoon_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_bassoon_sec_ks_simple_reverb.graph.json"
       },
@@ -108,11 +132,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Bassoons",
           "file": "clips/track_9_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_10",
+      "instrument_name": "sfizz_vpo3_bassoon_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_bassoon_sec_ks_simple_reverb.graph.json"
       },
@@ -122,11 +149,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Double Bassoons",
           "file": "clips/track_10_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_11",
+      "instrument_name": "sfizz_vpo3_french_horn_sec_perf_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_french_horn_sec_perf_ks_simple_reverb.graph.json"
       },
@@ -136,11 +166,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Horns (High)",
           "file": "clips/track_11_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_12",
+      "instrument_name": "sfizz_vpo3_french_horn_sec_perf_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_french_horn_sec_perf_ks_simple_reverb.graph.json"
       },
@@ -150,11 +183,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Horns (Low)",
           "file": "clips/track_12_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_13",
+      "instrument_name": "sfizz_vpo3_trumpet_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_trumpet_sec_ks_simple_reverb.graph.json"
       },
@@ -164,11 +200,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Trumpets (High)",
           "file": "clips/track_13_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_14",
+      "instrument_name": "sfizz_vpo3_trumpet_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_trumpet_sec_ks_simple_reverb.graph.json"
       },
@@ -178,11 +217,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Trumpets (Low)",
           "file": "clips/track_14_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_15",
+      "instrument_name": "sfizz_vpo3_trombone_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_trombone_sec_ks_simple_reverb.graph.json"
       },
@@ -192,11 +234,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Tenor Trombones",
           "file": "clips/track_15_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_16",
+      "instrument_name": "sfizz_vpo3_bass_trombone_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_bass_trombone_ks_simple_reverb.graph.json"
       },
@@ -206,11 +251,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Bass Trombones",
           "file": "clips/track_16_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_17",
+      "instrument_name": "sfizz_nbo_tuba_full;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_nbo_tuba_full_simple_reverb.graph.json"
       },
@@ -220,11 +268,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Tenor Tuba",
           "file": "clips/track_17_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_18",
+      "instrument_name": "sfizz_vpo3_tuba_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_tuba_ks_simple_reverb.graph.json"
       },
@@ -234,11 +285,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Bass Tuba",
           "file": "clips/track_18_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_19",
+      "instrument_name": "sfizz_vpo3_timpani_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_timpani_ks_simple_reverb.graph.json"
       },
@@ -248,11 +302,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Timpani 1",
           "file": "clips/track_19_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_20",
+      "instrument_name": "sfizz_vpo3_timpani_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_timpani_ks_simple_reverb.graph.json"
       },
@@ -262,11 +319,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Timpani 2",
           "file": "clips/track_20_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_21",
+      "instrument_name": "sfizz_vpo3_bassdrum_snare_cymbals;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_bassdrum_snare_cymbals_simple_reverb.graph.json"
       },
@@ -276,11 +336,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Side Drum",
           "file": "clips/track_21_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_22",
+      "instrument_name": "sfizz_vpo3_bassdrum_snare_cymbals;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_bassdrum_snare_cymbals_simple_reverb.graph.json"
       },
@@ -290,11 +353,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Cymbals",
           "file": "clips/track_22_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_23",
+      "instrument_name": "sfizz_vpo3_bassdrum_snare_cymbals;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_bassdrum_snare_cymbals_simple_reverb.graph.json"
       },
@@ -304,11 +370,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Bass Drum",
           "file": "clips/track_23_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_24",
+      "instrument_name": "sfizz_vpo3_percussion_misc;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_percussion_misc_simple_reverb.graph.json"
       },
@@ -318,11 +387,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Gong",
           "file": "clips/track_24_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_25",
+      "instrument_name": "sfizz_vpo3_harp_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_harp_ks_simple_reverb.graph.json"
       },
@@ -332,11 +404,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Harp I",
           "file": "clips/track_25_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_26",
+      "instrument_name": "sfizz_vpo3_harp_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_harp_ks_simple_reverb.graph.json"
       },
@@ -346,11 +421,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Harp II",
           "file": "clips/track_26_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_27",
+      "instrument_name": "freepats_drawbar_organ_emulation;simple_reverb",
       "graph": {
         "external_file": "graphs/freepats_drawbar_organ_emulation_simple_reverb.graph.json"
       },
@@ -360,11 +438,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Organ",
           "file": "clips/track_27_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_28",
+      "instrument_name": "sfizz_vpo3_1st_violin_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_1st_violin_sec_ks_simple_reverb.graph.json"
       },
@@ -374,11 +455,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "1st. Violin",
           "file": "clips/track_28_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_29",
+      "instrument_name": "sfizz_vpo3_2nd_violin_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_2nd_violin_sec_ks_simple_reverb.graph.json"
       },
@@ -388,11 +472,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "2nd Violins",
           "file": "clips/track_29_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_30",
+      "instrument_name": "sfizz_vpo3_viola_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_viola_sec_ks_simple_reverb.graph.json"
       },
@@ -402,11 +489,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Violas",
           "file": "clips/track_30_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_31",
+      "instrument_name": "sfizz_vpo3_cello_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_cello_sec_ks_simple_reverb.graph.json"
       },
@@ -416,11 +506,14 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Violoncellos",
           "file": "clips/track_31_clip_1.midi2"
         }
       ]
     },
     {
+      "id": "track_33",
+      "instrument_name": "sfizz_vpo3_contrabass_sec_ks;simple_reverb",
       "graph": {
         "external_file": "graphs/sfizz_vpo3_contrabass_sec_ks_simple_reverb.graph.json"
       },
@@ -430,6 +523,7 @@
           "tick_resolution": 48,
           "mime_type": "audio/midi2",
           "position_samples": 0,
+          "name": "Doublebasses",
           "file": "clips/track_33_clip_1.midi2"
         }
       ]

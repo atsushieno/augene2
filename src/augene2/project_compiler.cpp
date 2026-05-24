@@ -13,13 +13,18 @@
 
 namespace {
 
+struct ImportedClip {
+    mugene2::LocatedClip data{};
+    std::string name{};
+};
+
 struct ImportedTrack {
     uint32_t track_id{};
     std::string name{};
     std::string instrument_name{};
     std::optional<std::string> graph_binding_key{};
     std::string graph_binding_source{"binding key"};
-    std::vector<mugene2::LocatedClip> clips{};
+    std::vector<ImportedClip> clips{};
 };
 
 struct ImportedProjectData {
@@ -139,6 +144,15 @@ std::vector<std::string> extractMetadataTexts(const mugene2::TrackCompilationRes
     return texts;
 }
 
+std::vector<std::string> extractMetadataTexts(const mugene2::LocatedClip& clip,
+                                              uint8_t midi_meta_type,
+                                              uint8_t flex_metadata_status,
+                                              std::string_view unknown_prefix = {}) {
+    mugene2::TrackCompilationResult track;
+    track.clips.push_back(clip);
+    return extractMetadataTexts(track, midi_meta_type, flex_metadata_status, unknown_prefix);
+}
+
 std::vector<std::string> extractInstrumentNames(const mugene2::TrackCompilationResult& track) {
     return extractMetadataTexts(
         track,
@@ -150,6 +164,13 @@ std::vector<std::string> extractInstrumentNames(const mugene2::TrackCompilationR
 std::vector<std::string> extractTrackNames(const mugene2::TrackCompilationResult& track) {
     return extractMetadataTexts(
         track,
+        umppi::MidiMetaType::TRACK_NAME,
+        umppi::MetadataTextStatus::MIDI_CLIP_NAME);
+}
+
+std::vector<std::string> extractTrackNames(const mugene2::LocatedClip& clip) {
+    return extractMetadataTexts(
+        clip,
         umppi::MidiMetaType::TRACK_NAME,
         umppi::MetadataTextStatus::MIDI_CLIP_NAME);
 }
@@ -215,9 +236,9 @@ void appendClipMessage(std::vector<umppi::Ump>& destination,
     }
 }
 
-bool hasChannelMessages(std::span<const mugene2::LocatedClip> clips) {
+bool hasChannelMessages(std::span<const ImportedClip> clips) {
     for (const auto& clip : clips)
-        for (const auto& ump : clip.smf2clip)
+        for (const auto& ump : clip.data.smf2clip)
             if (ump.getMessageType() == umppi::MessageType::MIDI1 ||
                 ump.getMessageType() == umppi::MessageType::MIDI2)
                 return true;
@@ -356,8 +377,9 @@ void appendImportedTrack(augene2::ProjectCompilationResult& result,
     for (const auto& compiled_clip : imported_track.clips) {
         augene2::ProjectClip clip;
         clip.kind = augene2::ProjectClipKind::midi2;
-        clip.position_dctpq = compiled_clip.position_dctpq;
-        clip.smf2clip = compiled_clip.smf2clip;
+        clip.position_dctpq = compiled_clip.data.position_dctpq;
+        clip.smf2clip = compiled_clip.data.smf2clip;
+        clip.name = compiled_clip.name;
         track.clips.push_back(std::move(clip));
     }
 
@@ -499,12 +521,12 @@ ImportedProjectData importSmfProject(std::string_view source_name,
         std::vector<std::string> program_keys;
         std::set<std::string> distinct_program_keys;
 
-        mugene2::LocatedClip clip;
-        clip.position_dctpq = 0;
-        clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
-        clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::dctpq(static_cast<uint16_t>(midi_file.timeFormat))));
-        clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
-        clip.smf2clip.push_back(umppi::UmpFactory::startOfClip());
+        ImportedClip clip;
+        clip.data.position_dctpq = 0;
+        clip.data.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
+        clip.data.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::dctpq(static_cast<uint16_t>(midi_file.timeFormat))));
+        clip.data.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
+        clip.data.smf2clip.push_back(umppi::UmpFactory::startOfClip());
 
         uint32_t current_tick = 0;
         bool has_track_events = false;
@@ -526,7 +548,7 @@ ImportedProjectData importSmfProject(std::string_view source_name,
             }
 
             const auto event_delta = event.tickPosition - current_tick;
-            appendTrackMessage(clip.smf2clip, event_delta, message);
+            appendTrackMessage(clip.data.smf2clip, event_delta, message);
             current_tick = event.tickPosition;
             has_channel_messages = has_channel_messages || (message.isShortMessage() && message.data()[0] < 0xF0);
 
@@ -551,8 +573,15 @@ ImportedProjectData importSmfProject(std::string_view source_name,
             continue;
         }
 
-        clip.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
-        clip.smf2clip.push_back(umppi::UmpFactory::endOfClip());
+        clip.data.smf2clip.push_back(umppi::Ump(umppi::UmpFactory::deltaClockstamp(0)));
+        clip.data.smf2clip.push_back(umppi::UmpFactory::endOfClip());
+
+        if (auto clip_name = selectUniqueValue(
+                extractTrackNames(clip.data), "clip-name meta", std::format("track_{}", emitted_track_id), imported.diagnostics)) {
+            clip.name = *clip_name;
+        } else if (!track_names.empty()) {
+            clip.name = track_names.back();
+        }
 
         ImportedTrack imported_track;
         imported_track.track_id = emitted_track_id++;
@@ -649,7 +678,25 @@ ProjectCompilationResult compile_project(std::span<const mugene2::SourceText> so
         const auto program_keys = extractProgramKeys(compiled_track);
         ImportedTrack imported_track;
         imported_track.track_id = compiled_track.track_id;
-        imported_track.clips = compiled_track.clips;
+        imported_track.clips.reserve(compiled_track.clips.size());
+        for (const auto& compiled_clip : compiled_track.clips) {
+            ImportedClip clip;
+            clip.data = compiled_clip;
+            if (auto clip_name = selectUniqueValue(
+                    extractTrackNames(compiled_clip), "MIDI_CLIP_NAME", std::format("track_{}", compiled_track.track_id),
+                    result.diagnostics)) {
+                clip.name = *clip_name;
+            }
+            imported_track.clips.push_back(std::move(clip));
+        }
+
+        for (const auto& compiled_clip : compiled_track.clips) {
+            if (auto master_clip = extractMasterClip(compiled_clip)) {
+                auto clip_key = serializeClipIdentity(*master_clip);
+                if (master_clip_keys.insert(std::move(clip_key)).second)
+                    result.project.master_clips.push_back(std::move(*master_clip));
+            }
+        }
 
         if (!hasChannelMessages(imported_track.clips))
             continue;
@@ -668,11 +715,10 @@ ProjectCompilationResult compile_project(std::span<const mugene2::SourceText> so
             imported_track.graph_binding_source = "program key";
         }
 
-        for (const auto& compiled_clip : compiled_track.clips) {
-            if (auto master_clip = extractMasterClip(compiled_clip)) {
-                auto clip_key = serializeClipIdentity(*master_clip);
-                if (master_clip_keys.insert(std::move(clip_key)).second)
-                    result.project.master_clips.push_back(std::move(*master_clip));
+        if (!imported_track.name.empty()) {
+            for (auto& clip : imported_track.clips) {
+                if (clip.name.empty())
+                    clip.name = imported_track.name;
             }
         }
 
