@@ -2750,6 +2750,15 @@ private:
                 for (const auto& argument : operation.arguments)
                     args.push_back(evaluateArgument(argument.value, context, DataType::any, operation.location));
 
+                auto appendFlexEvent = [&](const auto& umps) {
+                    ResolvedEvent event{.operation = "FLEX_BINARY", .tick = context.timeline_position};
+                    for (const auto& ump : umps) {
+                        auto bytes = ump.toPlatformBytes();
+                        event.arguments.insert(event.arguments.end(), bytes.begin(), bytes.end());
+                    }
+                    appendCurrentEvent(event);
+                };
+
                 int flex_data_status = -1;
                 if (!args.empty()) {
                     auto first = resolvedByteArrayValue(args.front(), operation.location, tree_.base_count, diagnostics_);
@@ -2774,6 +2783,32 @@ private:
                             default:
                                 break;
                         }
+                    }
+                }
+
+                if (is_midi2_ && !args.empty()) {
+                    auto first = resolvedByteArrayValue(args.front(), operation.location, tree_.base_count, diagnostics_);
+                    if (!first.empty() && first[0] == umppi::MidiMetaType::TEMPO && args.size() >= 4) {
+                        const uint32_t tempo_microseconds =
+                            (static_cast<uint32_t>(resolvedByteValue(args[1], operation.location, tree_.base_count, diagnostics_)) << 16) |
+                            (static_cast<uint32_t>(resolvedByteValue(args[2], operation.location, tree_.base_count, diagnostics_)) << 8) |
+                            static_cast<uint32_t>(resolvedByteValue(args[3], operation.location, tree_.base_count, diagnostics_));
+                        appendFlexEvent(std::array<umppi::Ump, 1>{
+                            umppi::UmpFactory::tempo(0, 0, tempo_microseconds * 100)
+                        });
+                        continue;
+                    }
+
+                    if (!first.empty() && first[0] == umppi::MidiMetaType::TIME_SIGNATURE && args.size() >= 5) {
+                        appendFlexEvent(std::array<umppi::Ump, 1>{
+                            umppi::UmpFactory::timeSignatureDirect(
+                                0,
+                                0,
+                                resolvedByteValue(args[1], operation.location, tree_.base_count, diagnostics_),
+                                resolvedByteValue(args[2], operation.location, tree_.base_count, diagnostics_),
+                                resolvedByteValue(args[4], operation.location, tree_.base_count, diagnostics_))
+                        });
+                        continue;
                     }
                 }
 

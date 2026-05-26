@@ -241,5 +241,16 @@
         }
       ]
     }
-  ]
+  ],
+  "master_track": {
+    "clips": [
+      {
+        "clip_type": "midi",
+        "tick_resolution": 48,
+        "mime_type": "audio/midi2",
+        "position_samples": 0,
+        "file": "clips/master_clip_1.midi2"
+      }
+    ]
+  }
 }

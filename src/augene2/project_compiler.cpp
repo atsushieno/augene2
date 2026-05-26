@@ -46,20 +46,6 @@ augene2::ProjectDiagnosticSeverity mapSeverity(mugene2::DiagnosticSeverity sever
     }
 }
 
-std::string decodeFakeMidiMetaText(const std::vector<umppi::Ump>& message, uint8_t expected_meta_type) {
-    const auto bytes = umppi::UmpRetriever::getSysex8Data(message);
-    if (bytes.size() < 8)
-        return {};
-    if (bytes[0] != 0 || bytes[1] != 0 || bytes[2] != 0 || bytes[3] != 0)
-        return {};
-    if (bytes[4] != 0xFF || bytes[5] != 0xFF || bytes[6] != 0xFF)
-        return {};
-    if (bytes[7] != expected_meta_type)
-        return {};
-
-    return std::string(bytes.begin() + 8, bytes.end());
-}
-
 std::string decodeFlexDataText(const std::vector<umppi::Ump>& message) {
     std::vector<uint8_t> bytes;
     bytes.reserve(message.size() * 12);
@@ -94,25 +80,10 @@ std::vector<std::string> extractMetadataTexts(const mugene2::TrackCompilationRes
     std::vector<std::string> texts;
 
     for (const auto& clip : track.clips) {
-        std::vector<umppi::Ump> current_sysex8;
         std::vector<umppi::Ump> current_flex;
         for (const auto& ump : clip.smf2clip) {
             if (ump.isStartOfClip() || ump.isEndOfClip() || ump.isDeltaClockstamp() || ump.isDCTPQ())
                 continue;
-
-            if (ump.getMessageType() == umppi::MessageType::SYSEX8_MDS) {
-                current_sysex8.push_back(ump);
-                const auto chunk_status = ump.getBinaryChunkStatus();
-                if (chunk_status == umppi::BinaryChunkStatus::COMPLETE_PACKET ||
-                    chunk_status == umppi::BinaryChunkStatus::END) {
-                    auto text = decodeFakeMidiMetaText(current_sysex8, midi_meta_type);
-                    if (!text.empty())
-                        texts.push_back(std::move(text));
-                    current_sysex8.clear();
-                }
-                current_flex.clear();
-                continue;
-            }
 
             if (ump.getMessageType() == umppi::MessageType::FLEX_DATA) {
                 const auto status_bank = static_cast<uint8_t>((ump.int1 >> 8) & 0xFF);
@@ -132,11 +103,9 @@ std::vector<std::string> extractMetadataTexts(const mugene2::TrackCompilationRes
                 } else {
                     current_flex.clear();
                 }
-                current_sysex8.clear();
                 continue;
             }
 
-            current_sysex8.clear();
             current_flex.clear();
         }
     }
