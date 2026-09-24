@@ -11,6 +11,13 @@ include(CPM)
 option(AUGENE2_BUILD_TESTS "Build augene2 tests" OFF)
 
 set(ANTLR4_VERSION 4.13.2)
+# The C++ runtime is pinned past 4.13.2, to the end of the header-hygiene fixes on
+# antlr4's dev branch (antlr/antlr4#4738, #4791-#4794). 4.13.2 relies on transitive
+# standard includes and does not build on MSVC 14.51 (high_resolution_clock without
+# <chrono>) nor as C++23 against NDK r28 libc++ (unique_ptr of an incomplete
+# antlr4::Token). The tool jar stays 4.13.2. Return to a release tag once one
+# carries these fixes.
+set(ANTLR4_RUNTIME_GIT_TAG 5435f14134eb699d7484d46d946df817dfe97297)
 set(ANTLR4_JAR_PATH "${CMAKE_BINARY_DIR}/tools/antlr-${ANTLR4_VERSION}-complete.jar")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/tools")
 if(NOT EXISTS "${ANTLR4_JAR_PATH}")
@@ -42,7 +49,7 @@ set(_AUGENE2_OLD_ANTLR_BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS}")
 set(BUILD_SHARED_LIBS OFF)
 CPMAddPackage(
     NAME antlr4_runtime
-    GIT_TAG ${ANTLR4_VERSION}
+    GIT_TAG ${ANTLR4_RUNTIME_GIT_TAG}
     GIT_REPOSITORY https://github.com/antlr/antlr4
     SOURCE_SUBDIR runtime/Cpp
     OPTIONS "ANTLR_BUILD_CPP_TESTS OFF" "ANTLR_BUILD_SHARED OFF" "ANTLR_BUILD_STATIC ON"
