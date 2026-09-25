@@ -52,7 +52,10 @@ CPMAddPackage(
     GIT_TAG ${ANTLR4_RUNTIME_GIT_TAG}
     GIT_REPOSITORY https://github.com/antlr/antlr4
     SOURCE_SUBDIR runtime/Cpp
-    OPTIONS "ANTLR_BUILD_CPP_TESTS OFF" "ANTLR_BUILD_SHARED OFF" "ANTLR_BUILD_STATIC ON"
+    # WITH_STATIC_CRT defaults to ON, which builds only the runtime against the
+    # static MSVC CRT; everything linking it uses the default dynamic CRT, and MSVC
+    # refuses to mix them (LNK2038 "RuntimeLibrary mismatch").
+    OPTIONS "ANTLR_BUILD_CPP_TESTS OFF" "ANTLR_BUILD_SHARED OFF" "ANTLR_BUILD_STATIC ON" "WITH_STATIC_CRT OFF"
     EXCLUDE_FROM_ALL
 )
 if(DEFINED _AUGENE2_OLD_ANTLR_BUILD_SHARED_LIBS AND NOT "${_AUGENE2_OLD_ANTLR_BUILD_SHARED_LIBS}" STREQUAL "")
